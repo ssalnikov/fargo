@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gigovich/fargo/orm"
 	"github.com/gigovich/fargo/orm/field"
-	"github.com/gigovich/fargo/orm/q"
+	"github.com/gigovich/fargo/orm/op"
 )
 
 type UserModel struct {
@@ -18,22 +18,26 @@ var User = &UserModel{
 		Table: "users",
 	},
 	field.Fields{
-		&field.Int(field.Meta{Name: "id", Primary: true}),
-		&field.Char(field.Meta{Name: "name"}),
+		field.Int("id", field.Primary()),
+		field.Char("name"),
 	},
 }
 
 func main() {
-	user, err := User.Query(
-		q.And(
-			q.Eq(User.ID(), "32"),
-			q.Eq(User.Name(), "asdfasdf"),
-			q.Or(
-				q.Like(User.Email(), "blah@blah.com"),
-				q.Like(User.Status(), User.StatusNo),
-			),
+	user, err := User.One(
+		op.Value(&sums, op.Sum(Profile.Number())),
+		op.Eq(User.ID(), "32"),
+		op.Eq(User.Name(), "asdfasdf"),
+		op.Or(
+			op.Like(User.Email(), "blah@blah.com"),
+			op.Like(User.Status(), User.StatusNo),
 		),
-	).First()
+		op.GroupBy(User.Email()),
+		op.OrderBy(op.Asc, User.Email()),
+		op.LeftJoin(op.Eq(Profile.ID(), User.ProfileID())),
+		op.LeftJoin(op.Eq(Profile.ID(), User.ProfileID())),
+		op.Having(op.Gt(op.Count(Profile.Number()), 32)),
+	)
 	if err != nil {
 		panic(err)
 	}
