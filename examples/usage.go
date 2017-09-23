@@ -8,23 +8,23 @@ import (
 )
 
 type UserModel struct {
-	orm.Meta
+	orm.Model
 	orm.Fields
 }
 
 // User model
 var User = &UserModel{
-	orm.Meta{
+	orm.Model{
 		Table: "users",
 	},
-	field.Fields{
-		field.Int("id", field.Primary()),
+	orm.Fields{
+		field.Int("id", field.SetPrimary()),
 		field.Char("name"),
 	},
 }
 
 func main() {
-	user, err := User.One(
+	query := User.Query(
 		op.Value(&sums, op.Sum(Profile.Number())),
 		op.Eq(User.ID(), "32"),
 		op.Eq(User.Name(), "asdfasdf"),
@@ -38,6 +38,8 @@ func main() {
 		op.LeftJoin(op.Eq(Profile.ID(), User.ProfileID())),
 		op.Having(op.Gt(op.Count(Profile.Number()), 32)),
 	)
+
+	records, err := User.First(query.Extend()).One()
 	if err != nil {
 		panic(err)
 	}
