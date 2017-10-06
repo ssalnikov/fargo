@@ -1,8 +1,8 @@
 package orm
 
-type FieldMapper interface {
-	GetValue() interface{}
-	SetValue(interface{})
-}
+import (
+	"github.com/gigovich/fargo/orm/field"
+)
 
-type Fields []FieldMapper
+// Fields mapper
+type Fields []field.Mapper

@@ -1,4 +1,4 @@
-package orm
+package query
 
 // Query object
 type Query struct {
