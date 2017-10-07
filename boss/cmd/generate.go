@@ -42,10 +42,12 @@ var generateCmd = &cobra.Command{
 				return nil
 			}
 
-			p := parser.New(filePath)
-			if _, err := p.Parse(); err != nil {
+			models, err := parser.New(filePath).Parse()
+			if err != nil {
 				return err
 			}
+
+			fmt.Printf("%+v", models)
 
 			return nil
 		})
