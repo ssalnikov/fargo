@@ -15,6 +15,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/gigovich/fargo/internal/parser"
 	"github.com/spf13/cobra"
@@ -26,7 +29,26 @@ var generateCmd = &cobra.Command{
 	Short: "run codegeneration for all application modules",
 	Long:  `First of all this command regenerate model definions`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("generate called")
+		// walt to current working dir, and parse all go files to run codegeneration
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		filepath.Walk(dir, func(filePath string, info os.FileInfo, err error) error {
+			split := strings.Split(info.Name(), ".")
+			if info.IsDir() || split[len(split)-1] != "go" {
+				return nil
+			}
+
+			p := parser.New(filePath)
+			if _, err := p.Parse(); err != nil {
+				return err
+			}
+
+			return nil
+		})
 	},
 }
 
