@@ -6,91 +6,52 @@ import (
 	"go/token"
 )
 
-// Field definition
-type Field struct {
-	Name string
-	Type string
-}
-
-// Model definition
-type Model struct {
-	StructName string
-	Fields     []Field
-}
-
 // Parser golang file
 type Parser struct {
-	filePath string
-	fileSet  *token.FileSet
-	models   map[string]Model
+	filePath    string
+	modelParser *modelParser
+	fileSet     *token.FileSet
 }
 
 // New parser instance
 func New(filePath string) *Parser {
 	return &Parser{
-		filePath: filePath,
-		models:   make(map[string]Model),
+		modelParser: newModelParser("orm"),
+		filePath:    filePath,
 	}
 }
 
 // Parse go source file
-func (p *Parser) Parse() ([]Model, error) {
+func (p *Parser) Parse() error {
 	p.fileSet = token.NewFileSet()
 
 	// parse file
 	parsed, err := parser.ParseFile(p.fileSet, p.filePath, nil, 0)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// modelTypes := make(map[string]struct{})
-	for _, decl := range parsed.Decls {
-		switch decl := decl.(type) {
-		case *ast.GenDecl:
-			for _, spec := range decl.Specs {
-				switch spec := spec.(type) {
-				case *ast.TypeSpec:
-					if spec.Name.Obj.Kind == ast.Typ {
-						if p.ProcessModelStruct(spec) {
-							continue
-						}
-					}
-				}
-			}
-		}
-	}
+	ast.Inspect(parsed, p.InspectTypes)
+	ast.Inspect(parsed, p.InspectVars)
 
-	models := make([]Model, 0, len(p.models))
-	for _, m := range p.models {
-		models = append(models, m)
-	}
-	return models, nil
+	return nil
 }
 
-// ProcessModelStruct detect types which embeds orm.Model and inits internal models map
-func (p *Parser) ProcessModelStruct(n ast.Node) bool {
-	typeSpec, ok := n.(*ast.TypeSpec)
-	if !ok {
-		return false
+// InspectTypes declarations
+func (p *Parser) InspectTypes(n ast.Node) bool {
+	gd, ok := n.(*ast.GenDecl)
+	if !ok || gd.Tok != token.TYPE {
+		return true
 	}
 
-	structType, ok := typeSpec.Type.(*ast.StructType)
-	if !ok {
-		return false
-	}
+	return p.modelParser.InspectTypeSpecs(gd.Specs)
+}
 
-	for _, field := range structType.Fields.List {
-		if field, ok := field.Type.(*ast.SelectorExpr); ok {
-			if pac, ok := field.X.(*ast.Ident); ok && pac.Name == "orm" {
-				if field.Sel.Name == "Model" {
-					p.models[typeSpec.Name.Name] = Model{
-						StructName: typeSpec.Name.Name,
-					}
-					return true
-				}
-			}
-		}
+// InspectVars declarations
+func (p *Parser) InspectVars(n ast.Node) bool {
+	gd, ok := n.(*ast.GenDecl)
+	if !ok || gd.Tok != token.VAR {
+		return true
 	}
-
-	return false
+	return p.modelParser.InspectVarsSpecs(gd.Specs)
 }
