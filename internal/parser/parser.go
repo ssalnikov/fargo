@@ -16,7 +16,7 @@ type Parser struct {
 // New parser instance
 func New(filePath string) *Parser {
 	return &Parser{
-		modelParser: newModelParser("orm"),
+		modelParser: newModelParser("model", "field"),
 		filePath:    filePath,
 	}
 }
