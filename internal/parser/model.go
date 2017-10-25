@@ -99,8 +99,18 @@ func (p *modelParser) InspectVarsSpecs(specs []ast.Spec) bool {
 				continue
 			}
 
-			fmt.Println(se.X.(*ast.Ident).Name, ".", se.Sel.Name)
+			if se.X.(*ast.Ident).Name == p.ormPackageName && se.Sel.Name == "Model" {
+				return p.inspectModelExpr(cl.Elts)
+			}
 		}
+	}
+	return true
+}
+
+// inspectModelExpr parse orm.Model creation
+func (p *modelParser) inspectModelExpr(elts []ast.Expr) bool {
+	for _, elt := range elts {
+
 	}
 	return true
 }

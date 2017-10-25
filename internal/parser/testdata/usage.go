@@ -1,58 +1,54 @@
 package main
 
 import (
-	"github.com/gigovich/fargo/orm"
 	"github.com/gigovich/fargo/orm/field"
 	"github.com/gigovich/fargo/orm/mod"
+	"github.com/gigovich/fargo/orm/model"
 )
 
 type UserModel struct {
-	orm.Model
+	model.Mapper
 }
 
 type ProfileModel struct {
-	orm.Model
+	model.Mapper
 }
 
 type RoleModel struct {
-	orm.Model
+	model.Mapper
 }
 
 // User model
 var User = &UserModel{
-	orm.Model{
-		Table: "users",
-		Fields: orm.Fields{
-			field.Int("id",
-				field.OptionPrimary(),
-				field.OptionTags(`json:"id"`)),
-			field.Int("profile_id", field.OptionReferenceModel(Profile)),
-			field.Int("role_id", field.OptionReferenceModel(Role)),
+	model.New(
+		model.OptTable("users"),
+		model.OptFields(
+			field.Int("id", field.OptPrimary(), field.OptTags(`json:"id"`)),
+			field.Int("profile_id", field.OptReferenceModel(Profile)),
+			field.Int("role_id", field.OptReferenceModel(Role)),
 			field.Char("name"),
-		},
-	},
+		),
+	),
 }
 
 var Profile = &ProfileModel{
-	orm.Model{
-		Table: "profiles",
-		Fields: orm.Fields{
-			field.Int("id",
-				field.OptionPrimary()),
+	model.New(
+		model.OptTable("profiles"),
+		model.OptFields(
+			field.Int("id", field.OptPrimary()),
 			field.Char("address"),
-		},
-	},
+		),
+	),
 }
 
 var Role = &RoleModel{
-	orm.Model{
-		Table: "roles",
-		Fields: orm.Fields{
-			field.Int("id",
-				field.OptionPrimary()),
+	model.New(
+		model.OptTable("roles"),
+		model.OptFields(
+			field.Int("id", field.OptPrimary()),
 			field.Char("permissions"),
-		},
-	},
+		),
+	),
 }
 
 func main() {
