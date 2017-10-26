@@ -38,25 +38,26 @@ func (f *fieldParser) inpsectFields(modelMeta *model.Meta, ae ast.Expr) field.Ma
 		return nil
 	}
 
-	switch se.Sel.Name {
-	case "Int":
-		return f.getIntField(modelMeta, ce.Args)
-	}
-	return nil
-}
-
-func (f *fieldParser) getIntField(modelMeta *model.Meta, args []ast.Expr) field.Mapper {
-	if len(args) < 1 {
+	if len(ce.Args) < 1 {
 		return nil
 	}
 
-	bl, ok := args[0].(*ast.BasicLit)
+	bl, ok := ce.Args[0].(*ast.BasicLit)
 	if !ok && bl.Kind != token.STRING {
 		return nil
 	}
 
-	var options []field.Option
-	for _, arg := range args[1:] {
+	switch se.Sel.Name {
+	case "Int":
+		return field.Int(bl.Value, f.getOptions(modelMeta, ce.Args[1:])...)
+	case "Char":
+		return field.Char(bl.Value, f.getOptions(modelMeta, ce.Args[1:])...)
+	}
+	return nil
+}
+
+func (f *fieldParser) getOptions(modelMeta *model.Meta, args []ast.Expr) (options []field.Option) {
+	for _, arg := range args {
 		ce, ok := arg.(*ast.CallExpr)
 		if !ok {
 			return nil
@@ -77,10 +78,13 @@ func (f *fieldParser) getIntField(modelMeta *model.Meta, args []ast.Expr) field.
 			options = append(options, field.OptPrimary())
 		case "OptTags":
 			options = append(options, f.getOptTags(modelMeta, ce.Args))
+		case "OptReferenceModel":
+			options = append(options, f.getOptReferenceModel(modelMeta, ce.Args))
+		case "OptReferenceField":
+			options = append(options, f.getOptReferenceField(modelMeta, ce.Args))
 		}
 	}
-
-	return field.Int(bl.Value, options...)
+	return
 }
 
 func (f *fieldParser) getOptTags(modelMeta *model.Meta, args []ast.Expr) field.Option {
@@ -101,10 +105,35 @@ func (f *fieldParser) getOptReferenceModel(modelMeta *model.Meta, args []ast.Exp
 		return nil
 	}
 
-	bl, ok := args[0].(*ast.BasicLit)
-	if !ok || bl.Kind != token.STRING {
+	_, ok := args[0].(*ast.Ident)
+	if !ok {
 		return nil
 	}
 
-	// TODO: continue here
+	// TODO: remove this stub object
+	return field.OptReferenceModel(modelMeta)
+}
+
+func (f *fieldParser) getOptReferenceField(modelMeta *model.Meta, args []ast.Expr) field.Option {
+	if len(args) != 1 {
+		return nil
+	}
+
+	ce, ok := args[0].(*ast.CallExpr)
+	if !ok {
+		return nil
+	}
+
+	se, ok := ce.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return nil
+	}
+
+	_, ok = se.X.(*ast.Ident)
+	if !ok {
+		return nil
+	}
+
+	// TODO: remove this stub object
+	return field.OptReferenceField(field.Int("stub"))
 }

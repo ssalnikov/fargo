@@ -25,7 +25,7 @@ var User = &UserModel{
 		model.OptFields(
 			field.Int("id", field.OptPrimary(), field.OptTags(`json:"id"`)),
 			field.Int("profile_id", field.OptReferenceModel(Profile)),
-			field.Int("role_id", field.OptReferenceModel(Role)),
+			field.Int("role_id", field.OptReferenceField(Role.ID())),
 			field.Char("name"),
 		),
 	),
