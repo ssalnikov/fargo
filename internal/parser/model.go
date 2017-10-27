@@ -13,22 +13,19 @@ const newModelFuncName = "New"
 
 // modelParser definition parser
 type modelParser struct {
-	modelPackageName string
-	fieldPackageName string
-	fieldParser      *fieldParser
-	typesNames       map[string]*model.Meta
+	fieldParser *fieldParser
+	models      map[string]*model.Meta
 }
 
-func newModelParser(modelPackageName, fieldPackageName string) *modelParser {
+func newModelParser(models map[string]*model.Meta) *modelParser {
 	return &modelParser{
-		modelPackageName: modelPackageName,
-		fieldPackageName: fieldPackageName,
-		fieldParser:      newFieldParser(fieldPackageName),
-		typesNames:       make(map[string]*model.Meta),
+		fieldParser: newFieldParser(),
+		models:      models,
 	}
 }
 
-func (p *modelParser) InspectTypeSpecs(specs []ast.Spec) bool {
+// InspectTypeSpecs collect all model declarations
+func (p *modelParser) InspectTypeSpecs(ctx *Context, specs []ast.Spec) bool {
 	for _, sp := range specs {
 		ts, ok := sp.(*ast.TypeSpec)
 		if !ok {
@@ -52,8 +49,8 @@ func (p *modelParser) InspectTypeSpecs(specs []ast.Spec) bool {
 				continue
 			}
 
-			if id.Name == p.modelPackageName {
-				p.typesNames[name] = &model.Meta{
+			if id.Name == ctx.Model.Package.Name {
+				p.models[name] = &model.Meta{
 					Table: name,
 				}
 			}
@@ -62,7 +59,8 @@ func (p *modelParser) InspectTypeSpecs(specs []ast.Spec) bool {
 	return true
 }
 
-func (p *modelParser) InspectVarsSpecs(specs []ast.Spec) bool {
+// InspectVarsSpecs collect all model variables
+func (p *modelParser) InspectVarsSpecs(ctx *Context, specs []ast.Spec) bool {
 	for _, sp := range specs {
 		vs, ok := sp.(*ast.ValueSpec)
 		if !ok {
@@ -92,11 +90,12 @@ func (p *modelParser) InspectVarsSpecs(specs []ast.Spec) bool {
 
 		modelType := clt.Name
 
-		modelMeta, ok := p.typesNames[modelType]
+		modelMeta, ok := p.models[modelType]
 		if !ok {
 			fmt.Printf("Struct '%v' not defined\n", modelType)
 			continue
 		}
+		ctx.Model.Meta = modelMeta
 
 		for _, elt := range cl.Elts {
 			ce, ok := elt.(*ast.CallExpr)
@@ -109,8 +108,8 @@ func (p *modelParser) InspectVarsSpecs(specs []ast.Spec) bool {
 				continue
 			}
 
-			if se.X.(*ast.Ident).Name == p.modelPackageName && se.Sel.Name == newModelFuncName {
-				return p.inspectModelExpr(modelMeta, ce.Args)
+			if se.X.(*ast.Ident).Name == ctx.Model.Package.Name && se.Sel.Name == newModelFuncName {
+				return p.inspectModelExpr(ctx, ce.Args)
 			}
 		}
 	}
@@ -118,7 +117,7 @@ func (p *modelParser) InspectVarsSpecs(specs []ast.Spec) bool {
 }
 
 // inspectModelExpr parse orm.Model creation
-func (p *modelParser) inspectModelExpr(modelMeta *model.Meta, args []ast.Expr) bool {
+func (p *modelParser) inspectModelExpr(ctx *Context, args []ast.Expr) bool {
 	for _, arg := range args {
 		ce, ok := arg.(*ast.CallExpr)
 		if !ok {
@@ -135,17 +134,17 @@ func (p *modelParser) inspectModelExpr(modelMeta *model.Meta, args []ast.Expr) b
 			continue
 		}
 
-		if id.Name != p.modelPackageName {
+		if id.Name != ctx.Model.Package.Name {
 			continue
 		}
 
 		switch se.Sel.Name {
 		case "OptTable":
-			if err := p.CallOptTable(modelMeta, ce.Args); err != nil {
+			if err := p.CallOptTable(ctx, ce.Args); err != nil {
 				continue
 			}
 		case "OptFields":
-			if err := p.CallOptFields(modelMeta, ce.Args); err != nil {
+			if err := p.CallOptFields(ctx, ce.Args); err != nil {
 				continue
 			}
 		}
@@ -153,7 +152,8 @@ func (p *modelParser) inspectModelExpr(modelMeta *model.Meta, args []ast.Expr) b
 	return true
 }
 
-func (p *modelParser) CallOptTable(modelMeta *model.Meta, args []ast.Expr) error {
+// CallOptTable parses model.OptTable call for model defenition value
+func (p *modelParser) CallOptTable(ctx *Context, args []ast.Expr) error {
 	if len(args) != 1 {
 		return fmt.Errorf("function model.OptTable requires one argument")
 	}
@@ -163,17 +163,18 @@ func (p *modelParser) CallOptTable(modelMeta *model.Meta, args []ast.Expr) error
 		return fmt.Errorf("function model.OptTable argument should be string type")
 	}
 
-	model.OptTable(bl.Value)(modelMeta)
+	model.OptTable(bl.Value)(ctx.Model.Meta)
 	return nil
 }
 
-func (p *modelParser) CallOptFields(modelMeta *model.Meta, args []ast.Expr) error {
+// CallOptFields parses model.OptFields call which defines fields for model defenition value
+func (p *modelParser) CallOptFields(ctx *Context, args []ast.Expr) error {
 	var fieldMappers []field.Mapper
 	for _, arg := range args {
-		if m := p.fieldParser.inpsectFields(modelMeta, arg); m != nil {
+		if m := p.fieldParser.inpsectFields(ctx, arg); m != nil {
 			fieldMappers = append(fieldMappers, m)
 		}
 	}
-	model.OptFields(fieldMappers...)
+	model.OptFields(fieldMappers...)(ctx.Model.Meta)
 	return nil
 }

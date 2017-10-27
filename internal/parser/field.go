@@ -5,20 +5,16 @@ import (
 	"go/token"
 
 	"github.com/gigovich/fargo/orm/field"
-	"github.com/gigovich/fargo/orm/model"
 )
 
 type fieldParser struct {
-	fieldPackageName string
 }
 
-func newFieldParser(fieldPackageName string) *fieldParser {
-	return &fieldParser{
-		fieldPackageName: fieldPackageName,
-	}
+func newFieldParser() *fieldParser {
+	return &fieldParser{}
 }
 
-func (f *fieldParser) inpsectFields(modelMeta *model.Meta, ae ast.Expr) field.Mapper {
+func (f *fieldParser) inpsectFields(ctx *Context, ae ast.Expr) field.Mapper {
 	ce, ok := ae.(*ast.CallExpr)
 	if !ok {
 		return nil
@@ -34,7 +30,7 @@ func (f *fieldParser) inpsectFields(modelMeta *model.Meta, ae ast.Expr) field.Ma
 		return nil
 	}
 
-	if id.Name != f.fieldPackageName {
+	if id.Name != ctx.Field.Package.Name {
 		return nil
 	}
 
@@ -49,14 +45,14 @@ func (f *fieldParser) inpsectFields(modelMeta *model.Meta, ae ast.Expr) field.Ma
 
 	switch se.Sel.Name {
 	case "Int":
-		return field.Int(bl.Value, f.getOptions(modelMeta, ce.Args[1:])...)
+		return field.Int(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
 	case "Char":
-		return field.Char(bl.Value, f.getOptions(modelMeta, ce.Args[1:])...)
+		return field.Char(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
 	}
 	return nil
 }
 
-func (f *fieldParser) getOptions(modelMeta *model.Meta, args []ast.Expr) (options []field.Option) {
+func (f *fieldParser) getOptions(ctx *Context, args []ast.Expr) (options []field.Option) {
 	for _, arg := range args {
 		ce, ok := arg.(*ast.CallExpr)
 		if !ok {
@@ -69,7 +65,7 @@ func (f *fieldParser) getOptions(modelMeta *model.Meta, args []ast.Expr) (option
 		}
 
 		id, ok := se.X.(*ast.Ident)
-		if !ok && id.Name != f.fieldPackageName {
+		if !ok && id.Name != ctx.Field.Package.Name {
 			return nil
 		}
 
@@ -77,17 +73,17 @@ func (f *fieldParser) getOptions(modelMeta *model.Meta, args []ast.Expr) (option
 		case "OptPrimary":
 			options = append(options, field.OptPrimary())
 		case "OptTags":
-			options = append(options, f.getOptTags(modelMeta, ce.Args))
+			options = append(options, f.getOptTags(ctx, ce.Args))
 		case "OptReferenceModel":
-			options = append(options, f.getOptReferenceModel(modelMeta, ce.Args))
+			options = append(options, f.getOptReferenceModel(ctx, ce.Args))
 		case "OptReferenceField":
-			options = append(options, f.getOptReferenceField(modelMeta, ce.Args))
+			options = append(options, f.getOptReferenceField(ctx, ce.Args))
 		}
 	}
 	return
 }
 
-func (f *fieldParser) getOptTags(modelMeta *model.Meta, args []ast.Expr) field.Option {
+func (f *fieldParser) getOptTags(ctx *Context, args []ast.Expr) field.Option {
 	if len(args) != 1 {
 		return nil
 	}
@@ -100,7 +96,7 @@ func (f *fieldParser) getOptTags(modelMeta *model.Meta, args []ast.Expr) field.O
 	return field.OptTags(bl.Value)
 }
 
-func (f *fieldParser) getOptReferenceModel(modelMeta *model.Meta, args []ast.Expr) field.Option {
+func (f *fieldParser) getOptReferenceModel(ctx *Context, args []ast.Expr) field.Option {
 	if len(args) != 1 {
 		return nil
 	}
@@ -111,10 +107,10 @@ func (f *fieldParser) getOptReferenceModel(modelMeta *model.Meta, args []ast.Exp
 	}
 
 	// TODO: remove this stub object
-	return field.OptReferenceModel(modelMeta)
+	return field.OptReferenceModel(ctx.Model.Meta)
 }
 
-func (f *fieldParser) getOptReferenceField(modelMeta *model.Meta, args []ast.Expr) field.Option {
+func (f *fieldParser) getOptReferenceField(ctx *Context, args []ast.Expr) field.Option {
 	if len(args) != 1 {
 		return nil
 	}
