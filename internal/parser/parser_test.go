@@ -11,5 +11,15 @@ func TestParser(t *testing.T) {
 		t.Error(err)
 	}
 
-	t.Log(models["UserModel"].Fields[0])
+	if len(models) != 3 {
+		t.Errorf("parsed models count mismatch: expected 3, got %v", len(models))
+		return
+	}
+
+	for _, k := range []string{"UserModel", "ProfileModel", "RoleModel"} {
+		if _, ok := models[k]; !ok {
+			t.Errorf("'%v' model not parsed", k)
+			return
+		}
+	}
 }

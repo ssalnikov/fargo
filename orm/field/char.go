@@ -8,6 +8,7 @@ type CharField struct {
 // Char field constructor
 func Char(name string, options ...Option) Mapper {
 	f := &CharField{}
+	f.Meta.Name = name
 	Configure(&f.Meta, options...)
 	return f
 }

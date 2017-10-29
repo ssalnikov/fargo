@@ -30,7 +30,7 @@ func (f *fieldParser) inpsectFields(ctx *Context, ae ast.Expr) field.Mapper {
 		return nil
 	}
 
-	if id.Name != ctx.Field.Package.Name {
+	if id.Name != ctx.FieldImport {
 		return nil
 	}
 
@@ -65,7 +65,7 @@ func (f *fieldParser) getOptions(ctx *Context, args []ast.Expr) (options []field
 		}
 
 		id, ok := se.X.(*ast.Ident)
-		if !ok && id.Name != ctx.Field.Package.Name {
+		if !ok && id.Name != ctx.FieldImport {
 			return nil
 		}
 
@@ -107,7 +107,7 @@ func (f *fieldParser) getOptReferenceModel(ctx *Context, args []ast.Expr) field.
 	}
 
 	// TODO: remove this stub object
-	return field.OptReferenceModel(ctx.Model.Meta)
+	return field.OptReferenceModel(&ctx.currentDef.Model)
 }
 
 func (f *fieldParser) getOptReferenceField(ctx *Context, args []ast.Expr) field.Option {

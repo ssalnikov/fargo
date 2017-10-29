@@ -6,8 +6,9 @@ type IntField struct {
 }
 
 // Int field constructor
-func Int(fieldName string, options ...Option) Mapper {
+func Int(name string, options ...Option) Mapper {
 	f := &IntField{}
+	f.Meta.Name = name
 	Configure(&f.Meta, options...)
 	return f
 }

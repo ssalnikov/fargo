@@ -14,13 +14,11 @@ const newModelFuncName = "New"
 // modelParser definition parser
 type modelParser struct {
 	fieldParser *fieldParser
-	models      map[string]*model.Meta
 }
 
-func newModelParser(models map[string]*model.Meta) *modelParser {
+func newModelParser() *modelParser {
 	return &modelParser{
 		fieldParser: newFieldParser(),
-		models:      models,
 	}
 }
 
@@ -49,9 +47,12 @@ func (p *modelParser) InspectTypeSpecs(ctx *Context, specs []ast.Spec) bool {
 				continue
 			}
 
-			if id.Name == ctx.Model.Package.Name {
-				p.models[name] = &model.Meta{
-					Table: name,
+			if id.Name == ctx.ModelImport {
+				ctx.DefList[name] = &ModelDef{
+					Model: model.Meta{
+						Table: name,
+					},
+					TypeDefined: true,
 				}
 			}
 		}
@@ -90,12 +91,22 @@ func (p *modelParser) InspectVarsSpecs(ctx *Context, specs []ast.Spec) bool {
 
 		modelType := clt.Name
 
-		modelMeta, ok := p.models[modelType]
+		modelDef, ok := ctx.DefList[modelType]
 		if !ok {
 			fmt.Printf("Struct '%v' not defined\n", modelType)
 			continue
 		}
-		ctx.Model.Meta = modelMeta
+
+		// create empty model, and set flat that it is not defined as type
+		modelDef = &ModelDef{
+			Model: model.Meta{
+				Table: clt.Name,
+			},
+			TypeDefined: false,
+		}
+
+		ctx.DefList[modelType] = modelDef
+		ctx.currentDef = modelDef
 
 		for _, elt := range cl.Elts {
 			ce, ok := elt.(*ast.CallExpr)
@@ -108,7 +119,7 @@ func (p *modelParser) InspectVarsSpecs(ctx *Context, specs []ast.Spec) bool {
 				continue
 			}
 
-			if se.X.(*ast.Ident).Name == ctx.Model.Package.Name && se.Sel.Name == newModelFuncName {
+			if se.X.(*ast.Ident).Name == ctx.ModelImport && se.Sel.Name == newModelFuncName {
 				return p.inspectModelExpr(ctx, ce.Args)
 			}
 		}
@@ -134,7 +145,7 @@ func (p *modelParser) inspectModelExpr(ctx *Context, args []ast.Expr) bool {
 			continue
 		}
 
-		if id.Name != ctx.Model.Package.Name {
+		if id.Name != ctx.ModelImport {
 			continue
 		}
 
@@ -163,7 +174,7 @@ func (p *modelParser) CallOptTable(ctx *Context, args []ast.Expr) error {
 		return fmt.Errorf("function model.OptTable argument should be string type")
 	}
 
-	model.OptTable(bl.Value)(ctx.Model.Meta)
+	model.OptTable(bl.Value)(&ctx.currentDef.Model)
 	return nil
 }
 
@@ -175,6 +186,6 @@ func (p *modelParser) CallOptFields(ctx *Context, args []ast.Expr) error {
 			fieldMappers = append(fieldMappers, m)
 		}
 	}
-	model.OptFields(fieldMappers...)(ctx.Model.Meta)
+	model.OptFields(fieldMappers...)(&ctx.currentDef.Model)
 	return nil
 }

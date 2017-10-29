@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"github.com/gigovich/fargo/orm/model"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -10,28 +9,26 @@ import (
 // Parser golang file
 type Parser struct {
 	filePath    string
-	models      map[string]*model.Meta
 	modelParser *modelParser
 	fileSet     *token.FileSet
 }
 
 // New parser instance
 func New(filePath string) *Parser {
-	models := make(map[string]*model.Meta)
 	return &Parser{
-		models:      models,
-		modelParser: newModelParser(models),
+		modelParser: newModelParser(),
 		filePath:    filePath,
 	}
 }
 
 // Parse go source file
-func (p *Parser) Parse() (map[string]*model.Meta, error) {
+func (p *Parser) Parse() (*Context, error) {
 	p.fileSet = token.NewFileSet()
 
 	ctx := &Context{}
-	ctx.Model.Package.Name = "model"
-	ctx.Field.Package.Name = "field"
+	ctx.DefList = make(map[string]*ModelDef)
+	ctx.ModelImport = "model"
+	ctx.FieldImport = "field"
 
 	// parse file
 	parsed, err := parser.ParseFile(p.fileSet, p.filePath, nil, 0)
@@ -39,10 +36,12 @@ func (p *Parser) Parse() (map[string]*model.Meta, error) {
 		return nil, err
 	}
 
+	ctx.PkgName = parsed.Name.Name
+
 	ast.Inspect(parsed, p.InspectTypes(ctx))
 	ast.Inspect(parsed, p.InspectVars(ctx))
 
-	return p.models, nil
+	return ctx, nil
 }
 
 // InspectTypes declarations
