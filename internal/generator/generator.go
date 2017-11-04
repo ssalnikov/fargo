@@ -34,11 +34,32 @@ func (g *Generator) Generate(ctx *parser.Context) error {
 
 	for name, def := range ctx.DefList {
 		if !def.TypeDefined {
-			fmt.Fprintf(f, "type %v struct {\n\tmodel.Mapper\n}\n", name)
+			fmt.Fprintf(f, "type %v struct {\n\tmodel.Mapper\n}\n\n", name)
+		}
+
+		for i, field := range def.Model.Fields {
+			fmt.Fprintf(
+				f,
+				"func (m *%v) %s() fiel.Mapper {\n\treturn m.Fields[%v]\n}\n\n",
+				name,
+				g.formatFieldName(field.GetMeta().Name),
+				i,
+			)
 		}
 	}
 
 	return nil
+}
+
+func (g *Generator) formatFieldName(name string) (modified string) {
+	for _, part := range strings.Split(name, "_") {
+		if substitute, ok := reservedFieldNames[strings.ToLower(part)]; ok {
+			modified += substitute
+		} else {
+			modified += strings.Title(part)
+		}
+	}
+	return modified
 }
 
 // getGenFile path
@@ -48,3 +69,5 @@ func (g *Generator) getGenFile() string {
 	filebase = strings.TrimSuffix(filebase, ".go")
 	return filepath.Join(fp, filebase+"_gen.go")
 }
+
+var reservedFieldNames = map[string]string{"id": "ID", "pk": "PK", "url": "URL", "uri": "URI"}

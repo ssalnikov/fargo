@@ -3,6 +3,7 @@ package parser
 import (
 	"go/ast"
 	"go/token"
+	"strings"
 
 	"github.com/gigovich/fargo/orm/field"
 )
@@ -43,6 +44,7 @@ func (f *fieldParser) inpsectFields(ctx *Context, ae ast.Expr) field.Mapper {
 		return nil
 	}
 
+	bl.Value = strings.Trim(bl.Value, "\"")
 	switch se.Sel.Name {
 	case "Int":
 		return field.Int(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
