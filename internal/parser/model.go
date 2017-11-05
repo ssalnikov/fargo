@@ -90,22 +90,17 @@ func (p *modelParser) InspectVarsSpecs(ctx *Context, specs []ast.Spec) bool {
 		}
 
 		modelType := clt.Name
-
 		modelDef, ok := ctx.DefList[modelType]
 		if !ok {
-			fmt.Printf("Struct '%v' not defined\n", modelType)
-			continue
+			// create empty model, and set flat that it is not defined as type
+			modelDef = &ModelDef{
+				Model: model.Meta{
+					Table: clt.Name,
+				},
+				TypeDefined: false,
+			}
+			ctx.DefList[modelType] = modelDef
 		}
-
-		// create empty model, and set flat that it is not defined as type
-		modelDef = &ModelDef{
-			Model: model.Meta{
-				Table: clt.Name,
-			},
-			TypeDefined: false,
-		}
-
-		ctx.DefList[modelType] = modelDef
 		ctx.currentDef = modelDef
 
 		for _, elt := range cl.Elts {

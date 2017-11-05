@@ -2,7 +2,6 @@ package generator
 
 import (
 	"bytes"
-	"fmt"
 	"go/format"
 	"os"
 	"path/filepath"
@@ -37,7 +36,6 @@ func (g *Generator) Generate(ctx *parser.Context) error {
 	}
 
 	formatted, err := format.Source(buff.Bytes())
-	fmt.Println(string(formatted))
 	_, err = f.Write(formatted)
 	return err
 }

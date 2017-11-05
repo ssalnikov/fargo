@@ -25,10 +25,11 @@ import (
 
 {{range $modelName, $modelDef := .DefList }}
 {{if not $modelDef.TypeDefined}}
-// {{$modelName}} embeds meta mapper
+// {{$modelName}} members meta mapper
 type {{$modelName}} struct {
 	model.Meta
 }
+{{end}}
 
 // {{recordname $modelName}} data object
 type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $modelDef.Model.Fields}}
@@ -36,7 +37,6 @@ type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $model
 	{{fieldname $fieldDef.GetMeta.Name}} string {{gettags $fieldDef.GetMeta}}
 {{end}}
 }
-{{end}}
 
 {{range $fieldIndex, $fieldDef := $modelDef.Model.Fields}}
 // {{fieldname $fieldDef.GetMeta.Name}} returns field mapper for column '{{$fieldDef.GetMeta.Name}}'
