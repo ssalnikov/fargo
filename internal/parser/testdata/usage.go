@@ -6,10 +6,6 @@ import (
 	"github.com/gigovich/fargo/orm/model"
 )
 
-type UserModel struct {
-	model.Mapper
-}
-
 type ProfileModel struct {
 	model.Mapper
 }
@@ -65,12 +61,12 @@ func main() {
 		mod.Eq(User.Name(), "asdfasdf"),
 	)
 
-	records, err := User.First(query.Extend(
+	records, err := User.One(query.Extend(
 		mod.Or(
 			mod.Like(User.Email(), "blah@blah.com"),
 			mod.Like(User.Status(), User.StatusNo),
 		),
-	)).One()
+	))
 	if err != nil {
 		panic(err)
 	}
