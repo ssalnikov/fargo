@@ -25,9 +25,9 @@ import (
 
 {{range $modelName, $modelDef := .DefList }}
 {{if not $modelDef.TypeDefined}}
-// {{$modelName}} members meta mapper
+// {{$modelName}} embends model meta mapper
 type {{$modelName}} struct {
-	model.Meta
+	model.Mapper
 }
 {{end}}
 
@@ -43,20 +43,27 @@ type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $model
 func (m *{{$modelName}}) {{fieldname $fieldDef.GetMeta.Name}}() field.Mapper {
 	return m.Fields[{{$fieldIndex}}]
 }
+
+{{if $fieldDef.GetMeta.Primary}}
+// GetPrimaryKey field of {{$modelName}}
+func (m *{{$modelName}}) GetPrimaryKey() field.Mapper {
+	return m.Fields[{{$fieldIndex}}]
+}
+{{end}}
 {{end}}
 
 // Query records for '{{$modelName}}'
-func (m *{{$modelName}}) Query(mods ...mod.Modifier) *model.Query {
+func (m *{{$modelName}}) Query(mods ...mod.Modifier) *query.Query {
 	return &query.Query{}
 }
 
 // Find returns first element from executed query
-func (m *{{$modelName}}) Find(query model.Query) ([]{{recordname $modelName}}, error) {
+func (m *{{$modelName}}) Find(query *query.Query) ([]{{recordname $modelName}}, error) {
 	return nil, nil
 }
 
 // One returns first element from executed query
-func (m *{{$modelName}}) One(query model.Query) (*{{recordname $modelName}}, error) {
+func (m *{{$modelName}}) One(query *query.Query) (*{{recordname $modelName}}, error) {
 	return nil, nil
 }
 {{end}}`))
@@ -80,5 +87,5 @@ func getTags(f field.Meta) string {
 	if f.Tags == "" {
 		return "`json:\"" + f.Name + "\"`"
 	}
-	return "`" + f.Tags + "`"
+	return f.Tags
 }

@@ -1,12 +1,18 @@
 package generator
 
 import (
+	"bufio"
 	"bytes"
+	"io"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"testing"
+
 	"github.com/gigovich/fargo/internal/parser"
 	"github.com/sergi/go-diff/diffmatchpatch"
-	"io/ioutil"
-	"path/filepath"
-	"testing"
 )
 
 func TestGeneration(t *testing.T) {
@@ -44,7 +50,9 @@ func TestGeneration(t *testing.T) {
 	}
 
 	if err := New(usageTempFile).Generate(ctx); err != nil {
-		t.Error(err)
+		if err := checkFormatError(t, tempDir, err); err != nil {
+			t.Error(err)
+		}
 		return
 	}
 
@@ -61,4 +69,48 @@ func TestGeneration(t *testing.T) {
 		t.Error("oiriginal and generated content mismatch")
 		return
 	}
+}
+
+// checkFormatError and print generated code part where this error happen
+func checkFormatError(t *testing.T, tempDir string, origErr error) error {
+	split := strings.Split(origErr.Error(), ":")
+	if len(split) < 2 {
+		return origErr
+	}
+
+	lineNo, err := strconv.Atoi(split[0])
+	if err != nil {
+		return origErr
+	}
+
+	_, err = strconv.Atoi(split[1])
+	if err != nil {
+		return origErr
+	}
+
+	f, err := os.Open(filepath.Join(tempDir, "usage_gen.go"))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bufio.NewReader(f)
+	for i := 1; true; i++ {
+		l, _, err := reader.ReadLine()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		if i > lineNo-3 && i < lineNo+3 {
+			if i == lineNo {
+				t.Logf(">>%4d: %s", i, l)
+			} else {
+				t.Logf("  %4d: %s", i, l)
+			}
+		}
+	}
+
+	t.Errorf("format error: %v", origErr)
+	return nil
 }

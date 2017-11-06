@@ -35,8 +35,19 @@ func (g *Generator) Generate(ctx *parser.Context) error {
 		return err
 	}
 
+	// check code validity
 	formatted, err := format.Source(buff.Bytes())
-	_, err = f.Write(formatted)
+	if err == nil {
+		// save formated code
+		if _, err := f.Write(formatted); err != nil {
+			return err
+		}
+	} else {
+		// even broken code we should save to see problem place
+		if _, err := f.Write(buff.Bytes()); err != nil {
+			return err
+		}
+	}
 	return err
 }
 
