@@ -17,7 +17,6 @@ var moduleTemplate = template.Must(
 			`package {{ .PkgName }}
 
 import (
-	"github.com/gigovich/fargo/orm/field"
 	"github.com/gigovich/fargo/orm/mod"
 	"github.com/gigovich/fargo/orm/model"
 	"github.com/gigovich/fargo/orm/query"
@@ -40,14 +39,14 @@ type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $model
 
 {{range $fieldIndex, $fieldDef := $modelDef.Model.Fields}}
 // {{fieldname $fieldDef.GetMeta.Name}} returns field mapper for column '{{$fieldDef.GetMeta.Name}}'
-func (m *{{$modelName}}) {{fieldname $fieldDef.GetMeta.Name}}() field.Mapper {
-	return m.Fields[{{$fieldIndex}}]
+func (m *{{$modelName}}) {{fieldname $fieldDef.GetMeta.Name}}() model.Field {
+	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
 }
 
 {{if $fieldDef.GetMeta.Primary}}
 // GetPrimaryKey field of {{$modelName}}
-func (m *{{$modelName}}) GetPrimaryKey() field.Mapper {
-	return m.Fields[{{$fieldIndex}}]
+func (m *{{$modelName}}) GetPrimaryKey() model.Field {
+	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
 }
 {{end}}
 {{end}}

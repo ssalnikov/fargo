@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gigovich/fargo/orm/field"
 	"github.com/gigovich/fargo/orm/mod"
 	"github.com/gigovich/fargo/orm/model"
 	"github.com/gigovich/fargo/orm/query"
@@ -17,18 +16,18 @@ type ProfileRecord struct {
 }
 
 // ID returns field mapper for column 'id'
-func (m *ProfileModel) ID() field.Mapper {
-	return m.Fields[0]
+func (m *ProfileModel) ID() model.Field {
+	return model.Field{Model: m, Field: m.Fields[0]}
 }
 
 // GetPrimaryKey field of ProfileModel
-func (m *ProfileModel) GetPrimaryKey() field.Mapper {
-	return m.Fields[0]
+func (m *ProfileModel) GetPrimaryKey() model.Field {
+	return model.Field{Model: m, Field: m.Fields[0]}
 }
 
 // Address returns field mapper for column 'address'
-func (m *ProfileModel) Address() field.Mapper {
-	return m.Fields[1]
+func (m *ProfileModel) Address() model.Field {
+	return model.Field{Model: m, Field: m.Fields[1]}
 }
 
 // Query records for 'ProfileModel'
@@ -56,18 +55,18 @@ type RoleRecord struct {
 }
 
 // ID returns field mapper for column 'id'
-func (m *RoleModel) ID() field.Mapper {
-	return m.Fields[0]
+func (m *RoleModel) ID() model.Field {
+	return model.Field{Model: m, Field: m.Fields[0]}
 }
 
 // GetPrimaryKey field of RoleModel
-func (m *RoleModel) GetPrimaryKey() field.Mapper {
-	return m.Fields[0]
+func (m *RoleModel) GetPrimaryKey() model.Field {
+	return model.Field{Model: m, Field: m.Fields[0]}
 }
 
 // Permissions returns field mapper for column 'permissions'
-func (m *RoleModel) Permissions() field.Mapper {
-	return m.Fields[1]
+func (m *RoleModel) Permissions() model.Field {
+	return model.Field{Model: m, Field: m.Fields[1]}
 }
 
 // Query records for 'RoleModel'
@@ -106,28 +105,28 @@ type UserRecord struct {
 }
 
 // ID returns field mapper for column 'id'
-func (m *UserModel) ID() field.Mapper {
-	return m.Fields[0]
+func (m *UserModel) ID() model.Field {
+	return model.Field{Model: m, Field: m.Fields[0]}
 }
 
 // GetPrimaryKey field of UserModel
-func (m *UserModel) GetPrimaryKey() field.Mapper {
-	return m.Fields[0]
+func (m *UserModel) GetPrimaryKey() model.Field {
+	return model.Field{Model: m, Field: m.Fields[0]}
 }
 
 // ProfileID returns field mapper for column 'profile_id'
-func (m *UserModel) ProfileID() field.Mapper {
-	return m.Fields[1]
+func (m *UserModel) ProfileID() model.Field {
+	return model.Field{Model: m, Field: m.Fields[1]}
 }
 
 // RoleID returns field mapper for column 'role_id'
-func (m *UserModel) RoleID() field.Mapper {
-	return m.Fields[2]
+func (m *UserModel) RoleID() model.Field {
+	return model.Field{Model: m, Field: m.Fields[2]}
 }
 
 // Name returns field mapper for column 'name'
-func (m *UserModel) Name() field.Mapper {
-	return m.Fields[3]
+func (m *UserModel) Name() model.Field {
+	return model.Field{Model: m, Field: m.Fields[3]}
 }
 
 // Query records for 'UserModel'
