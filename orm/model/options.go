@@ -5,27 +5,18 @@ import (
 )
 
 // OptionFunc function uses to configure model properties object
-type OptionFunc func(*Meta)
-
-// New model instance
-func New(optFuncs ...OptionFunc) *Meta {
-	meta := &Meta{}
-	for _, f := range optFuncs {
-		f(meta)
-	}
-	return meta
-}
+type OptionFunc func(*Base)
 
 // OptTable name property configure
 func OptTable(name string) OptionFunc {
-	return func(instance *Meta) {
+	return func(instance *Base) {
 		instance.Table = name
 	}
 }
 
 // OptFields list property configure
 func OptFields(fieldMappers ...field.Mapper) OptionFunc {
-	return func(meta *Meta) {
+	return func(meta *Base) {
 		for _, mapper := range fieldMappers {
 			meta.Fields = append(meta.Fields, mapper)
 		}

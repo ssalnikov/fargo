@@ -1,10 +1,10 @@
 package field
 
 // Option setup function for field
-type Option func(*Meta)
+type Option func(*Base)
 
-// Meta struct with common field properties
-type Meta struct {
+// Base struct with common field properties
+type Base struct {
 	// primary key flag
 	Primary bool
 

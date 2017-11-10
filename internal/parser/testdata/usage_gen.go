@@ -86,7 +86,7 @@ func (m *RoleModel) One(query *query.Query) (*RoleRecord, error) {
 
 // UserModel embends model meta mapper
 type UserModel struct {
-	model.Mapper
+	model.Base
 }
 
 // UserRecord data object
@@ -127,6 +127,11 @@ func (m *UserModel) RoleID() model.Field {
 // Name returns field mapper for column 'name'
 func (m *UserModel) Name() model.Field {
 	return model.Field{Model: m, Field: m.Fields[3]}
+}
+
+// Insert UserRecords to database
+func (m *UserModel) Insert(records ...UserRecord) error {
+	return nil
 }
 
 // Query records for 'UserModel'

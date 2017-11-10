@@ -7,11 +7,11 @@ import (
 )
 
 type ProfileModel struct {
-	model.Mapper
+	model.Base
 }
 
 type RoleModel struct {
-	model.Mapper
+	model.Base
 }
 
 // User model
@@ -20,8 +20,8 @@ var User = &UserModel{
 		model.OptTable("users"),
 		model.OptFields(
 			field.Int("id", field.OptPrimary(), field.OptTags(`json:"id"`)),
-			field.Int("profile_id", field.OptReferenceModel(Profile)),
-			field.Int("role_id", field.OptReferenceField(Role.ID())),
+			field.Int("profile_id", field.OptReference(Profile.ID())),
+			field.Int("role_id", field.OptReference(Role.ID())),
 			field.Char("name"),
 		),
 	),
@@ -50,15 +50,24 @@ var Role = &RoleModel{
 func main() {
 	var sums int
 
+	err := User.Insert(
+		UserRecord{Name: "Me"},
+		UserRecord{Name: "You"},
+		UserRecord{Name: "Someone"},
+	)
+	if err != nil {
+		panic(err)
+	}
+
 	query := User.Query(
-		mod.LeftJoin(Profile, mod.Eq(Profile.ID(), User.ProfileID())),
+		mod.LeftJoin(Profile, mod.Eq(mod.Field(Profile.ID()), mod.Field(User.ProfileID()))),
 		mod.LeftJoin(Role, mod.Eq(Role.ID(), User.RoleID())),
-		mod.GroupBy(User.Email()),
-		mod.OrderBy(User.Email(), mod.Asc),
-		mod.Having(mod.Gt(mod.Count(Profile.Number()), 32)),
+		mod.GroupBy(User.Name()),
+		mod.OrderBy(User.Name(), mod.Asc),
+		mod.Having(mod.Gt(mod.Count(Profile.Number()), mod.Scalar(32))),
 		mod.Value(&sums, mod.Sum(Profile.Number())),
-		mod.Eq(User.ID(), "32"),
-		mod.Eq(User.Name(), "asdfasdf"),
+		mod.Eq(User.ID(), mod.Scalar("32")),
+		mod.Eq(User.Name(), mod.Scalar("asdfasdf")),
 	)
 
 	records, err := User.One(query.Extend(

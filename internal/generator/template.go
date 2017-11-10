@@ -26,7 +26,7 @@ import (
 {{if not $modelDef.TypeDefined}}
 // {{$modelName}} embends model meta mapper
 type {{$modelName}} struct {
-	model.Mapper
+	model.Base
 }
 {{end}}
 
@@ -42,13 +42,6 @@ type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $model
 func (m *{{$modelName}}) {{fieldname $fieldDef.GetMeta.Name}}() model.Field {
 	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
 }
-
-{{if $fieldDef.GetMeta.Primary}}
-// GetPrimaryKey field of {{$modelName}}
-func (m *{{$modelName}}) GetPrimaryKey() model.Field {
-	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
-}
-{{end}}
 {{end}}
 
 // Query records for '{{$modelName}}'
@@ -82,7 +75,7 @@ func formatRecordName(name string) (modifier string) {
 	return strings.TrimSuffix(name, "Model") + "Record"
 }
 
-func getTags(f field.Meta) string {
+func getTags(f field.Base) string {
 	if f.Tags == "" {
 		return "`json:\"" + f.Name + "\"`"
 	}

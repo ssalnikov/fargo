@@ -1,40 +1,33 @@
 package field
 
-// PrimaryKeyGetter interface for models
-type PrimaryKeyGetter interface {
-	GetPrimaryKey() Mapper
+// Getter field meta object
+type Getter interface {
+	GetField() Mapper
 }
 
 // OptPrimary set this field primary key flag enabled
 func OptPrimary() Option {
-	return func(b *Meta) {
+	return func(b *Base) {
 		b.Primary = true
 	}
 }
 
 // OptTags set this field primary key flag enabled
 func OptTags(tags string) Option {
-	return func(b *Meta) {
+	return func(b *Base) {
 		b.Tags = tags
 	}
 }
 
-// OptReferenceModel set this field referenced to other model by their primary key
-func OptReferenceModel(model PrimaryKeyGetter) Option {
-	return func(b *Meta) {
-		b.Reference = model.GetPrimaryKey()
-	}
-}
-
-// OptReferenceField set this field referenced to any other field
-func OptReferenceField(field Mapper) Option {
-	return func(b *Meta) {
-		b.Reference = field
+// OptReference set this field referenced to any other field
+func OptReference(field Getter) Option {
+	return func(b *Base) {
+		b.Reference = field.GetField()
 	}
 }
 
 // Configure meta object by sequental call option cofigure functions
-func Configure(meta *Meta, options ...Option) {
+func Configure(meta *Base, options ...Option) {
 	for _, o := range options {
 		o(meta)
 	}

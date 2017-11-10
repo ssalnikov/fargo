@@ -5,4 +5,16 @@ import (
 )
 
 // Modifier of query
-type Modifier func(*query.Query) *query.Query
+type Modifier interface {
+	Modify(*query.Query) *query.Query
+}
+
+// Decorate helps decorate any modification function to struct which implements Modifier interface
+type Decorate struct {
+	DecoratedFunc func(q *query.Query) *query.Query
+}
+
+// Modify interface realization which calls decorated modificator
+func (c *Decorate) Modify(q *query.Query) *query.Query {
+	return c.DecoratedFunc(q)
+}

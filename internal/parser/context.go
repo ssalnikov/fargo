@@ -7,7 +7,7 @@ import (
 // ModelDef options
 type ModelDef struct {
 	// Model instance
-	Model model.Meta
+	Model model.Base
 
 	// TypeDefined in parsed file, and no need generate it struct
 	TypeDefined bool

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gigovich/fargo/orm/field"
+	"github.com/gigovich/fargo/orm/model"
 )
 
 type fieldParser struct {
@@ -76,10 +77,8 @@ func (f *fieldParser) getOptions(ctx *Context, args []ast.Expr) (options []field
 			options = append(options, field.OptPrimary())
 		case "OptTags":
 			options = append(options, f.getOptTags(ctx, ce.Args))
-		case "OptReferenceModel":
-			options = append(options, f.getOptReferenceModel(ctx, ce.Args))
-		case "OptReferenceField":
-			options = append(options, f.getOptReferenceField(ctx, ce.Args))
+		case "OptReference":
+			options = append(options, f.getOptReference(ctx, ce.Args))
 		}
 	}
 	return
@@ -98,7 +97,7 @@ func (f *fieldParser) getOptTags(ctx *Context, args []ast.Expr) field.Option {
 	return field.OptTags(bl.Value)
 }
 
-func (f *fieldParser) getOptReferenceModel(ctx *Context, args []ast.Expr) field.Option {
+func (f *fieldParser) getOptReference(ctx *Context, args []ast.Expr) field.Option {
 	if len(args) != 1 {
 		return nil
 	}
@@ -109,29 +108,5 @@ func (f *fieldParser) getOptReferenceModel(ctx *Context, args []ast.Expr) field.
 	}
 
 	// TODO: remove this stub object
-	return field.OptReferenceModel(&ctx.currentDef.Model)
-}
-
-func (f *fieldParser) getOptReferenceField(ctx *Context, args []ast.Expr) field.Option {
-	if len(args) != 1 {
-		return nil
-	}
-
-	ce, ok := args[0].(*ast.CallExpr)
-	if !ok {
-		return nil
-	}
-
-	se, ok := ce.Fun.(*ast.SelectorExpr)
-	if !ok {
-		return nil
-	}
-
-	_, ok = se.X.(*ast.Ident)
-	if !ok {
-		return nil
-	}
-
-	// TODO: remove this stub object
-	return field.OptReferenceField(field.Int("stub"))
+	return field.OptReference(model.Field{})
 }

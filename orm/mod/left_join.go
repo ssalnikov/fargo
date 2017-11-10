@@ -7,7 +7,9 @@ import (
 
 // LeftJoin modificator
 func LeftJoin(mapper model.Mapper, mods ...Modifier) Modifier {
-	return func(q *query.Query) *query.Query {
-		return q
+	return &Decorate{
+		func(q *query.Query) *query.Query {
+			return q
+		},
 	}
 }
