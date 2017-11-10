@@ -7,7 +7,9 @@ import (
 
 // GroupBy operation
 func GroupBy(fields ...model.Field) Modifier {
-	return func(q *query.Query) *query.Query {
-		return q
+	return &Decorate{
+		func(q *query.Query) *query.Query {
+			return q
+		},
 	}
 }

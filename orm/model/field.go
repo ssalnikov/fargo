@@ -1,6 +1,9 @@
 package model
 
-import "github.com/gigovich/fargo/orm/field"
+import (
+	"github.com/gigovich/fargo/orm/field"
+	"github.com/gigovich/fargo/orm/query"
+)
 
 // Field contains both mappers for model and field
 type Field struct {
@@ -19,4 +22,9 @@ func (f Field) GetModel() Mapper {
 // GetField from model and field link object
 func (f Field) GetField() field.Mapper {
 	return f.Field
+}
+
+// Modify interface realization which calls decorated modificator
+func (f Field) Modify(q *query.Query) *query.Query {
+	return q
 }

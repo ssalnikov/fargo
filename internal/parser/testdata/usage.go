@@ -1,15 +1,19 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gigovich/fargo/orm/field"
 	"github.com/gigovich/fargo/orm/mod"
 	"github.com/gigovich/fargo/orm/model"
 )
 
+// ProfileModel definition struct
 type ProfileModel struct {
 	model.Base
 }
 
+// RoleModel definition struct
 type RoleModel struct {
 	model.Base
 }
@@ -27,6 +31,7 @@ var User = &UserModel{
 	),
 }
 
+// Profile model instance
 var Profile = &ProfileModel{
 	model.New(
 		model.OptTable("profiles"),
@@ -37,6 +42,7 @@ var Profile = &ProfileModel{
 	),
 }
 
+// Role model instance
 var Role = &RoleModel{
 	model.New(
 		model.OptTable("roles"),
@@ -60,23 +66,28 @@ func main() {
 	}
 
 	query := User.Query(
-		mod.LeftJoin(Profile, mod.Eq(mod.Field(Profile.ID()), mod.Field(User.ProfileID()))),
+		mod.LeftJoin(Profile, mod.Eq(Profile.ID(), User.ProfileID())),
 		mod.LeftJoin(Role, mod.Eq(Role.ID(), User.RoleID())),
 		mod.GroupBy(User.Name()),
 		mod.OrderBy(User.Name(), mod.Asc),
-		mod.Having(mod.Gt(mod.Count(Profile.Number()), mod.Scalar(32))),
-		mod.Value(&sums, mod.Sum(Profile.Number())),
+		mod.Having(mod.Gt(mod.Count(Profile.Address()), mod.Scalar(32))),
+		mod.Value(&sums, mod.Sum(Profile.ID())),
 		mod.Eq(User.ID(), mod.Scalar("32")),
 		mod.Eq(User.Name(), mod.Scalar("asdfasdf")),
 	)
 
-	records, err := User.One(query.Extend(
-		mod.Or(
-			mod.Like(User.Email(), "blah@blah.com"),
-			mod.Like(User.Status(), User.StatusNo),
+	records, err := User.One(
+		mod.Extend(
+			query,
+			mod.Or(
+				mod.Like(User.Name(), mod.Scalar("blah@blah.com")),
+				mod.Like(User.ProfileID(), Profile.ID()),
+			),
 		),
-	))
+	)
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println(records)
 }

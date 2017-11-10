@@ -4,8 +4,8 @@ import (
 	"github.com/gigovich/fargo/orm/query"
 )
 
-// Having operation
-func Having(mods ...Modifier) Modifier {
+// Like expression for where clause
+func Like(m1 Modifier, m2 Modifier) Modifier {
 	return &Decorate{
 		func(q *query.Query) *query.Query {
 			return q

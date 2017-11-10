@@ -18,7 +18,9 @@ const (
 
 // OrderBy operation
 func OrderBy(field model.Field, order SortingOrder) Modifier {
-	return func(q *query.Query) *query.Query {
-		return q
+	return &Decorate{
+		func(q *query.Query) *query.Query {
+			return q
+		},
 	}
 }
