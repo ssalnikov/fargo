@@ -5,6 +5,7 @@ import (
 	"go/token"
 	"strings"
 
+	"github.com/gigovich/fargo/internal/util"
 	"github.com/gigovich/fargo/orm/field"
 	"github.com/gigovich/fargo/orm/model"
 )
@@ -46,13 +47,20 @@ func (f *fieldParser) inpsectFields(ctx *Context, ae ast.Expr) field.Mapper {
 	}
 
 	bl.Value = strings.Trim(bl.Value, "\"")
+	var fieldInstance field.Mapper
 	switch se.Sel.Name {
 	case "Int":
-		return field.Int(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
+		fieldInstance = field.Int(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
 	case "Char":
-		return field.Char(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
+		fieldInstance = field.Char(bl.Value, f.getOptions(ctx, ce.Args[1:])...)
 	}
-	return nil
+
+	fieldMethodName := util.FormatFieldName(bl.Value)
+	fieldDef := NewFieldDef(fieldMethodName)
+	fieldDef.Field = fieldInstance
+	ctx.currentDef.Fields[fieldMethodName] = fieldDef
+
+	return fieldInstance
 }
 
 func (f *fieldParser) getOptions(ctx *Context, args []ast.Expr) (options []field.Option) {
@@ -102,11 +110,33 @@ func (f *fieldParser) getOptReference(ctx *Context, args []ast.Expr) field.Optio
 		return nil
 	}
 
-	_, ok := args[0].(*ast.Ident)
+	ce, ok := args[0].(*ast.CallExpr)
 	if !ok {
 		return nil
 	}
 
-	// TODO: remove this stub object
-	return field.OptReference(model.Field{})
+	se, ok := ce.Fun.(*ast.SelectorExpr)
+	if !ok {
+		return nil
+	}
+
+	name, ok := se.X.(*ast.Ident)
+	if !ok {
+		return nil
+	}
+	modelName := name.Name
+	fieldName := se.Sel.Name
+
+	modelDef, ok := ctx.DefList[modelName]
+	if !ok {
+		modelDef = NewModelDef(modelName)
+		ctx.DefList[modelName] = modelDef
+	}
+
+	fieldDef, ok := modelDef.Fields[fieldName]
+	if !ok {
+		fieldDef = NewFieldDef(fieldName)
+	}
+
+	return field.OptReference(&model.Field{Model: modelDef.Model, Field: fieldDef.Field})
 }

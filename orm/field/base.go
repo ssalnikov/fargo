@@ -17,3 +17,8 @@ type Base struct {
 	// reference field (this value as usual should be set to ID field of other table)
 	Reference Mapper
 }
+
+// GetField interface realisation with copy limitation
+func (b *Base) GetField() Base {
+	return *b
+}

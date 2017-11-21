@@ -48,12 +48,9 @@ func (p *modelParser) InspectTypeSpecs(ctx *Context, specs []ast.Spec) bool {
 			}
 
 			if id.Name == ctx.ModelImport {
-				ctx.DefList[name] = &ModelDef{
-					Model: model.Base{
-						Table: name,
-					},
-					TypeDefined: true,
-				}
+				modelDef := NewModelDef(name)
+				modelDef.TypeDefined = true
+				ctx.DefList[name] = modelDef
 			}
 		}
 	}
@@ -92,13 +89,8 @@ func (p *modelParser) InspectVarsSpecs(ctx *Context, specs []ast.Spec) bool {
 		modelType := clt.Name
 		modelDef, ok := ctx.DefList[modelType]
 		if !ok {
-			// create empty model, and set flat that it is not defined as type
-			modelDef = &ModelDef{
-				Model: model.Base{
-					Table: clt.Name,
-				},
-				TypeDefined: false,
-			}
+			// create empty model, and set flag that it is not defined as type
+			modelDef = NewModelDef(clt.Name)
 			ctx.DefList[modelType] = modelDef
 		}
 		ctx.currentDef = modelDef

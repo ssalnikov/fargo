@@ -58,5 +58,3 @@ func (g *Generator) getGenFile() string {
 	filebase = strings.TrimSuffix(filebase, ".go")
 	return filepath.Join(fp, filebase+"_gen.go")
 }
-
-var reservedFieldNames = map[string]string{"id": "ID", "pk": "PK", "url": "URL", "uri": "URI"}

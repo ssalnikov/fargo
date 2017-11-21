@@ -1,17 +1,17 @@
 package generator
 
 import (
-	"github.com/gigovich/fargo/orm/field"
-	"strings"
 	"text/template"
+
+	"github.com/gigovich/fargo/internal/util"
 )
 
 var moduleTemplate = template.Must(
 	template.New("module").
 		Funcs(template.FuncMap{
-			"fieldname":  formatFieldName,
-			"recordname": formatRecordName,
-			"gettags":    getTags,
+			"fieldname":  util.FormatFieldName,
+			"recordname": util.FormatRecordName,
+			"gettags":    util.GetTags,
 		}).
 		Parse(
 			`package {{ .PkgName }}
@@ -32,14 +32,14 @@ type {{$modelName}} struct {
 
 // {{recordname $modelName}} data object
 type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $modelDef.Model.Fields}}
-	// {{fieldname $fieldDef.GetMeta.Name}} field
-	{{fieldname $fieldDef.GetMeta.Name}} string {{gettags $fieldDef.GetMeta}}
+	// {{fieldname $fieldDef.GetField.Name}} field
+	{{fieldname $fieldDef.GetField.Name}} string {{gettags $fieldDef.GetField}}
 {{end}}
 }
 
 {{range $fieldIndex, $fieldDef := $modelDef.Model.Fields}}
-// {{fieldname $fieldDef.GetMeta.Name}} returns field mapper for column '{{$fieldDef.GetMeta.Name}}'
-func (m *{{$modelName}}) {{fieldname $fieldDef.GetMeta.Name}}() model.Field {
+// {{fieldname $fieldDef.GetField.Name}} returns field mapper for column '{{$fieldDef.GetField.Name}}'
+func (m *{{$modelName}}) {{fieldname $fieldDef.GetField.Name}}() model.Field {
 	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
 }
 {{end}}
@@ -59,25 +59,3 @@ func (m *{{$modelName}}) One(query *query.Query) (*{{recordname $modelName}}, er
 	return nil, nil
 }
 {{end}}`))
-
-func formatFieldName(name string) (modified string) {
-	for _, part := range strings.Split(name, "_") {
-		if substitute, ok := reservedFieldNames[strings.ToLower(part)]; ok {
-			modified += substitute
-		} else {
-			modified += strings.Title(part)
-		}
-	}
-	return modified
-}
-
-func formatRecordName(name string) (modifier string) {
-	return strings.TrimSuffix(name, "Model") + "Record"
-}
-
-func getTags(f field.Base) string {
-	if f.Tags == "" {
-		return "`json:\"" + f.Name + "\"`"
-	}
-	return f.Tags
-}

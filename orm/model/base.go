@@ -40,6 +40,6 @@ func (m Base) GetPrimaryKey() field.Mapper {
 }
 
 // GetModel base object
-func (m *Base) GetModel() *Base {
-	return m
+func (m Base) GetModel() *Base {
+	return &m
 }
