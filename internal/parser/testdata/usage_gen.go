@@ -30,6 +30,11 @@ func (m *ProfileModel) Address() model.Field {
 	return model.Field{Model: m, Field: m.Fields[1]}
 }
 
+// Insert 'ProfileRecord' to database
+func (m *ProfileModel) Insert(records ...ProfileRecord) error {
+	return nil
+}
+
 // Query records for 'ProfileModel'
 func (m *ProfileModel) Query(mods ...mod.Modifier) *query.Query {
 	return &query.Query{}
@@ -129,7 +134,7 @@ func (m *UserModel) Name() model.Field {
 	return model.Field{Model: m, Field: m.Fields[3]}
 }
 
-// Insert UserRecords to database
+// Insert UserRecord to database
 func (m *UserModel) Insert(records ...UserRecord) error {
 	return nil
 }

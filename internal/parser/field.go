@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"strings"
@@ -87,6 +88,7 @@ func (f *fieldParser) getOptions(ctx *Context, args []ast.Expr) (options []field
 			options = append(options, f.getOptTags(ctx, ce.Args))
 		case "OptReference":
 			options = append(options, f.getOptReference(ctx, ce.Args))
+			fmt.Printf("%+v", ctx)
 		}
 	}
 	return
@@ -126,6 +128,10 @@ func (f *fieldParser) getOptReference(ctx *Context, args []ast.Expr) field.Optio
 	}
 	modelName := name.Name
 	fieldName := se.Sel.Name
+
+	if !strings.HasSuffix(modelName, "Model") {
+		modelName = modelName + "Model"
+	}
 
 	modelDef, ok := ctx.DefList[modelName]
 	if !ok {

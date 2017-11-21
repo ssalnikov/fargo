@@ -42,7 +42,18 @@ type {{recordname $modelName}} struct { {{range $fieldIndex, $fieldDef := $model
 func (m *{{$modelName}}) {{fieldname $fieldDef.GetField.Name}}() model.Field {
 	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
 }
+{{if $fieldDef.GetField.Primary}}
+// GetPrimaryKey field of {{$modelName}}
+func (m *{{$modelName}}) GetPrimaryKey() model.Field {
+	return model.Field{Model: m, Field: m.Fields[{{$fieldIndex}}]}
+}
 {{end}}
+{{end}}
+
+// Insert '{{recordname $modelName}}' to database
+func (m *{{$modelName}}) Insert(records ...{{recordname $modelName}}) error {
+	return nil
+}
 
 // Query records for '{{$modelName}}'
 func (m *{{$modelName}}) Query(mods ...mod.Modifier) *query.Query {
