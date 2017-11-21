@@ -53,8 +53,7 @@ func (g *Generator) Generate(ctx *parser.Context) error {
 
 // getGenFile path
 func (g *Generator) getGenFile() string {
-	fp := filepath.Dir(g.filePath)
 	filebase := filepath.Base(g.filePath)
 	filebase = strings.TrimSuffix(filebase, ".go")
-	return filepath.Join(fp, filebase+"_gen.go")
+	return filepath.Join(filepath.Dir(g.filePath), filebase+"_gen.go")
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/gigovich/fargo/orm/mod"
 	"github.com/gigovich/fargo/orm/model"
 	"github.com/gigovich/fargo/orm/query"
@@ -42,6 +43,23 @@ func (m *ProfileModel) Query(mods ...mod.Modifier) *query.Query {
 
 // Find returns first element from executed query
 func (m *ProfileModel) Find(query *query.Query) ([]ProfileRecord, error) {
+	tx, err := sql.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := tx.Query(query.Build(), ...query.Args())
+	if err != nil {
+		return nil, err
+	}
+
+	var records []ProfileRecord
+	for rows.Next() {
+		var r ProfileRecord
+		if err := rows.Scan(&r.ID,); err != nil {
+			return nil, err
+		}
+	}
 	return nil, nil
 }
 
@@ -72,6 +90,11 @@ func (m *RoleModel) GetPrimaryKey() model.Field {
 // Permissions returns field mapper for column 'permissions'
 func (m *RoleModel) Permissions() model.Field {
 	return model.Field{Model: m, Field: m.Fields[1]}
+}
+
+// Insert 'RoleRecord' to database
+func (m *RoleModel) Insert(records ...RoleRecord) error {
+	return nil
 }
 
 // Query records for 'RoleModel'
