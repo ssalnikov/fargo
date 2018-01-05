@@ -3,7 +3,7 @@ package generator
 import (
 	"text/template"
 
-	"github.com/gigovich/fargo/internal/util"
+	"github.com/gigovich/fargo/core/util"
 )
 
 var moduleTemplate = template.Must(

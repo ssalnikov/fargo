@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gigovich/fargo/internal/parser"
+	"github.com/gigovich/fargo/core/parser"
 )
 
 // Generator for code based on meta

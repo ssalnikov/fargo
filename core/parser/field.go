@@ -6,7 +6,7 @@ import (
 	"go/token"
 	"strings"
 
-	"github.com/gigovich/fargo/internal/util"
+	"github.com/gigovich/fargo/core/util"
 	"github.com/gigovich/fargo/orm/field"
 	"github.com/gigovich/fargo/orm/model"
 )

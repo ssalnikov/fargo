@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gigovich/fargo/internal/parser"
+	"github.com/gigovich/fargo/core/parser"
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
